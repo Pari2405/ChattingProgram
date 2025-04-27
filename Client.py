@@ -11,7 +11,7 @@ clientSocket.connect(ADDR)
 
 def work(conn):
     while True:
-        data = conn.recv(8)
+        data = conn.recv(4096)
         data = data.decode()
         prefix = data[:2]
         length = int(prefix)
@@ -31,13 +31,50 @@ def work(conn):
 worker = threading.Thread(target=work, args=(clientSocket, ))
 worker.start()
 
+def read_file(path):
+    try:
+        with open(path, 'rb') as f:
+            file = f.read()
+        return file
+    except FileNotFoundError:
+        print ('File not found')
+        return None
+
 while True:
     message = input()
-    length = len(message)
-    prefix = format(length, '02d')
+    if not message:
+        break
+
+    option = 'text '
+    if message[0] == '/':
+        if message[1:6] == 'file ':
+            option = 'file'
+
+    if option == 'file':
+        filename = message[6:]
+        type = filename.split('.')[-1]
+        header = 'f'
+        if type == 'jpg':
+            header += ' jpg'
+
+        message = read_file(filename)
+        if not message:
+            continue
+
+    else:
+        header = 't____'
+
+    message = header.encode() + message
+
+    length = len(message.decode())
+    prefix = format(length, '10d')
     print(prefix)
-    message = prefix + message
-    clientSocket.send(message.encode())
+    message = prefix.encode() + message
+    clientSocket.send(message)
 
 clientSocket.close()
 print('client disconnected')
+
+
+#(4587224)(f jpg)(file)
+#(578)(t____)(text)

@@ -18,31 +18,44 @@ print ('accept')
 print('--client information--')
 print(clientSocket)
 
+def save_file(path, data):
+    with open(path, 'wb') as f:
+        f.write(data)
+
 def work(clientSocket):
     while True:
-        data = clientSocket.recv(8)
+        data = clientSocket.recv(4096)
         data = data.decode()
-        prefix = data[:2]
+        prefix = data[:10]
         length = int(prefix)
-        data = data[2:]
+        header = data[10:15]
+        length -= 5
         length -= int(len(data))
+        data = data[15:]
 
         while length > 0:
-            temp = clientSocket.recv(8).decode()
+            temp = clientSocket.recv(4096).decode()
             data += temp
             length -= int(len(temp))
 
         if not data:
             break
-        print('recieve data:', data)
+
+        if header[0] == 'f':
+            type = header[1:]
+            path = 'for/server/file.' + type
+            save_file(path, data)
+        else:
+            print (data)
 
 worker = threading.Thread(target=work, args=(clientSocket, ))
 worker.start()
 
+
 while True:
     message = input()
     length = len(message)
-    prefix = format(length, '02d')
+    prefix = format(length, '10d')
     print(prefix)
     message = prefix + message
     clientSocket.send(message.encode())
