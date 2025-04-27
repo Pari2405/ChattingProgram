@@ -55,18 +55,18 @@ while True:
         type = filename.split('.')[-1]
         header = 'f'
         if type == 'jpg':
-            header += ' jpg'
+            header += 'jpg'
 
         message = read_file(filename)
         if not message:
             continue
 
     else:
-        header = 't____'
+        header = 't___'
 
     message = header.encode() + message
 
-    length = len(message.decode())
+    length = len(message)
     prefix = format(length, '10d')
     print(prefix)
     message = prefix.encode() + message

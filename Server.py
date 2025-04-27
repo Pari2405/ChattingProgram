@@ -25,16 +25,15 @@ def save_file(path, data):
 def work(clientSocket):
     while True:
         data = clientSocket.recv(4096)
-        data = data.decode()
-        prefix = data[:10]
+        prefix = data[:10].decode()
         length = int(prefix)
-        header = data[10:15]
-        length -= 5
+        header = data[10:14].decode()
+        length -= 4
         length -= int(len(data))
-        data = data[15:]
+        data = data[14:]
 
         while length > 0:
-            temp = clientSocket.recv(4096).decode()
+            temp = clientSocket.recv(4096)
             data += temp
             length -= int(len(temp))
 
@@ -43,7 +42,7 @@ def work(clientSocket):
 
         if header[0] == 'f':
             type = header[1:]
-            path = 'for/server/file.' + type
+            path = 'for_server/file.' + type
             save_file(path, data)
         else:
             print (data)
